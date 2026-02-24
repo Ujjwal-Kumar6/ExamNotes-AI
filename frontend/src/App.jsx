@@ -82,8 +82,9 @@ function App() {
       {/* Payment routes */}
       <Route path='/cancel' element={<PamentCancel />} />
       <Route path='/success' element={<PametSuccess />} />
+      <Route path="*" element={<Navigate to={userData ? "/" : "/auth"} />} />
     </Routes>
   )
 }
 
-export default App;
+export default App
