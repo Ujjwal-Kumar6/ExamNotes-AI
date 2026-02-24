@@ -2,10 +2,23 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { url } from "../App";
 
 function Hero() {
   const userData = useSelector((state) => state.user?.userData || null);
   const navigate = useNavigate();
+
+  const handleBuy = async (amount) => {
+    try {
+      const res = await axios.post(`${url}/topup/topup`, {
+        amount,
+      }, { withCredentials: true });
+      window.location.href = res.data.url;
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <section className="text-white px-6 pt-24 pb-24">
@@ -91,17 +104,17 @@ function Hero() {
         </h2>
 
         <p className="text-center text-slate-500 mb-12 text-sm">
-          *Maximum diamond balance: 
+          *Maximum diamond balance:
           <span className="text-indigo-400 font-semibold">
-            {" "}2,147,483,647
+            {" "}2,14,74,83,647
           </span> (INT-32 limit)
         </p>
 
         <div className="grid md:grid-cols-3 gap-8">
           {[
-            { name: "Basic", dia: 100, price: "₹15" },
-            { name: "Pro", dia: 300, price: "₹39", popular: true },
-            { name: "Premium", dia: 1000, price: "₹99" }
+            { name: "Basic",   dia: 100,  price: "₹50",  amount: 50,  popular: false },
+            { name: "Pro",     dia: 300,  price: "₹99",  amount: 99,  popular: true  },
+            { name: "Premium", dia: 1000, price: "₹249", amount: 249, popular: false },
           ].map((p, i) => (
             <motion.div
               key={i}
@@ -117,10 +130,13 @@ function Hero() {
               )}
 
               <h3 className="text-xl font-semibold mt-3">{p.name}</h3>
-              <p className="text-3xl font-bold my-3">💎 {p.dia}</p>
+              <p className="text-3xl font-bold my-3">💎 {p.dia.toLocaleString()}</p>
               <p className="text-indigo-400 font-bold text-xl">{p.price}</p>
 
-              <button className="mt-6 w-full py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700">
+              <button
+                onClick={() => handleBuy(p.amount)}
+                className="mt-6 w-full py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700"
+              >
                 Buy Now
               </button>
             </motion.div>
@@ -152,7 +168,7 @@ function Hero() {
               className="bg-slate-900/60 backdrop-blur-xl border border-slate-700
               rounded-2xl p-8 shadow-lg"
             >
-              <p className="text-slate-300 mb-4">“{r.text}”</p>
+              <p className="text-slate-300 mb-4">"{r.text}"</p>
               <h4 className="font-semibold text-indigo-400">— {r.name}</h4>
             </motion.div>
           ))}

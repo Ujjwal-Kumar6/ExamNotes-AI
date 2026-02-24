@@ -8,6 +8,8 @@ import Notes from './pages/Notes';
 import History from './pages/History';
 import Current from './pages/Current';
 import Price from './pages/price';
+import PamentCancel from './pages/PamentCancel';
+import PametSuccess from './pages/PammetnSucces';
 
 export const url = import.meta.env.VITE_SERVER_URL;
 function App() {
@@ -25,6 +27,8 @@ function App() {
         <Route path='/my-notes' element={userData? <History/> : <Hero/>}/>
         <Route path='/notes/:id' element={userData? <Current/> : <Hero/>}/>
         <Route path='/dashboard' element={userData ? <Price/> : <Hero/>}/>
+        <Route path='/cancel' element={<PamentCancel/>} />
+        <Route path='/success' element= {<PametSuccess/>} />
       </Routes>
     </>
   )

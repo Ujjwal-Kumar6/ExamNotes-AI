@@ -1,18 +1,13 @@
+import "./confit/env.js"; // ✅ must be first
 import express from "express";
-import dotenv from "dotenv";
 import db from "./confit/db.js";
 import authRout from "./route/atuhRout.js";
 import cookieParser from "cookie-parser";
-import cors from "cors"
+import cors from "cors";
 import userRout from "./route/userRout.js";
 import aiRoute from "./route/aiRout.js";
 import noteRoute from "./route/noteRoute.js";
 import topUpRoute from "./route/topUpRoute.js";
-
-
-dotenv.config({
-    path: "./.env",
-});
 
 const port = process.env.PORT || 8080;
 
@@ -29,7 +24,7 @@ app.get("/", (req, res) => {
     res.json({
         message: "Exam Notes AI Backend is Running",
         creater: "Ujjwal Kumar"
-    })
+    });
 });
 
 app.use("/auth", authRout);

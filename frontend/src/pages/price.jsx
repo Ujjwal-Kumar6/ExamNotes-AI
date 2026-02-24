@@ -40,7 +40,6 @@ const STYLES = `
     pointer-events: none;
   }
 
-  /* ── Back Button ── */
   .price-back-btn {
     position: absolute;
     top: 24px;
@@ -276,25 +275,9 @@ const STYLES = `
 `;
 
 const PLANS = [
-  {
-    name: 'Basic',
-    diamonds: 100,
-    price: '₹15',
-    featured: false,
-  },
-  {
-    name: 'Pro',
-    diamonds: 300,
-    price: '₹39',
-    featured: true,
-    badge: 'Most Popular',
-  },
-  {
-    name: 'Premium',
-    diamonds: 1000,
-    price: '₹99',
-    featured: false,
-  },
+  { name: 'Basic',   diamonds: 100,  price: '₹50',  amount: 50,  featured: false },
+  { name: 'Pro',     diamonds: 300,  price: '₹99',  amount: 99,  featured: true, badge: 'Most Popular' },
+  { name: 'Premium', diamonds: 1000, price: '₹249', amount: 249, featured: false },
 ];
 
 const MAX_DIAMONDS = (2147483647).toLocaleString('en-IN');
@@ -313,26 +296,22 @@ function Price() {
     }
   }, []);
 
-  const handleBuy = async(plan) => {
-    dispatch(setAmount(plan.price));
-    alert(`Redirecting to payment for ${plan.name} — ${plan.price}`);
+  const handleBuy = async (plan) => {
     try {
-        const res = await axios.post(`${url}/topup/topup`, {
-            amount: plan.price,
-            dimond: plan.diamonds
-        }, {
-            withCredentials: true,
-        });
-        dispatch(setUserData(res.data));
+      const res = await axios.post(`${url}/topup/topup`, {
+        amount: plan.amount,
+      }, {
+        withCredentials: true,
+      });
+      window.location.href = res.data.url;
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
   };
 
   return (
     <div className="price-page">
 
-      {/* Back Button */}
       <button className="price-back-btn" onClick={() => navigate(-1)}>
         <span className="price-back-arrow">←</span>
         <span>Back</span>
