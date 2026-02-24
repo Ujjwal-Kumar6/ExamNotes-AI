@@ -12,6 +12,12 @@ import topUpRoute from "./route/topUpRoute.js";
 const port = process.env.PORT || 8080;
 
 const app = express();
+
+// ✅ IMPORTANT: Webhook route MUST come BEFORE express.json()
+// This ensures Stripe gets the raw body
+app.use('/topup/webhook', express.raw({ type: 'application/json' }));
+
+// ✅ Then apply JSON parsing for ALL OTHER routes
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
@@ -31,7 +37,7 @@ app.use("/auth", authRout);
 app.use('/user', userRout);
 app.use('/ai', aiRoute);
 app.use('/notes', noteRoute);
-app.use('/topup', topUpRoute);
+app.use('/topup', topUpRoute); // This will now work because webhook is handled separately
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
