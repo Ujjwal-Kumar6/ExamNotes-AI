@@ -5,7 +5,8 @@ OUTPUT RULES:
 - Output ONLY valid JSON. Nothing before or after.
 - Double quotes only. No trailing commas. No comments.
 - Escape newlines as \\n inside strings.
-- No emojis inside text values. Markdown allowed inside strings.
+- No emojis inside text values (text fields only). Markdown bold (**text**) is allowed inside strings.
+- LaTeX math is allowed: inline as $formula$, block as $$formula$$.
 
 ========================
 TASK
@@ -20,111 +21,122 @@ Include Charts: ${charts ? "YES" : "NO"}
 ========================
 PRIORITY SYSTEM
 ========================
-Classify every subtopic into exactly one of these three priority levels:
+Classify every subtopic into exactly one of three star-rated priority levels:
 
-"low"    = Background knowledge, rare topics, brief explanation (1 star)
-"medium" = Supporting concepts, applications, frequently asked (2 stars)
-"high"   = Core definitions, formulas, highest marks, maximum detail (3 stars)
+"⭐⭐⭐" = Core definitions, formulas, highest exam marks — maximum detail
+"⭐⭐"   = Supporting concepts, applications, frequently asked — moderate detail  
+"⭐"     = Background knowledge, rare topics — brief explanation
 
-Every subtopic MUST appear in one of the three arrays: low, medium, or high.
+Every subtopic MUST appear in one of the three arrays.
 Do NOT leave all three arrays empty.
-Do NOT rename these keys.
+Do NOT rename these keys — use the exact star strings shown above.
 
 ========================
 SUBTOPIC FORMAT
 ========================
-Each item in low/medium/high must follow this exact shape:
-{
-  "title": "string",
-  "bullets": ["string", "string"],
-  "example": "string or empty string"
-}
+Each item in ⭐⭐⭐ / ⭐⭐ / ⭐ must be a plain string.
+Use **bold** markdown for key terms. Use $formula$ for inline math.
+Example: "**Newton's Second Law**: Force equals mass times acceleration, $F = ma$"
 
 ========================
 REVISION MODE
 ========================
 ${revision
-  ? "Focus on high priority only. Keep bullets concise (2-3 per item). Quick recall style."
-  : "Balanced coverage across all priorities. Include examples and detailed explanations."}
+  ? "Focus on ⭐⭐⭐ priority only. Keep each string concise (1–2 sentences). Quick recall style."
+  : "Balanced coverage across all three priorities. Include examples and detailed explanations in each string."}
 
 ========================
 DIAGRAM RULES
 ========================
 ${diagram
-  ? 'Include an ASCII or Mermaid diagram inside diagram.data for the most important concept. Keep it simple.'
+  ? `Include a valid Mermaid diagram inside diagram.data for the most important concept.
+Use only simple Mermaid syntax: flowchart LR/TD, graph, or sequenceDiagram.
+Escape all quotes inside diagram strings with \\".
+Keep it under 20 nodes.`
   : 'Set diagram.data to empty string "".'}
 
 ========================
 CHART RULES
 ========================
 ${charts
-  ? 'Include 1-2 markdown tables inside the chart array as strings. Max 10 rows. Only for high/medium topics.'
-  : 'Set chart to empty array [].'}
+  ? `Include 1–2 markdown pipe tables inside the chart array as strings.
+Max 10 rows each. First column is the category label. Remaining columns are numeric.
+Only for ⭐⭐⭐ or ⭐⭐ topics.
+Example row: "| Concept | Score | Frequency |\\n|---------|-------|-----------|\\n| Item A  | 80    | 12        |"`
+  : "Set chart to empty array []."}
 
 ========================
 EXACT OUTPUT STRUCTURE
 ========================
 {
   "subTopics": {
-    "low": [],
-    "medium": [],
-    "high": []
+    "⭐⭐⭐": ["string", "string"],
+    "⭐⭐":   ["string", "string"],
+    "⭐":     ["string"]
   },
-  "importance": "low | medium | high",
+  "importance": "⭐⭐⭐ | ⭐⭐ | ⭐",
   "note": "string",
-  "revisionPoints": [],
-  "questions": {
-    "short": [],
-    "long": [],
-    "diagram": ""
+  "revisonPoint": ["string", "string"],
+  "question": {
+    "short": ["string", "string"],
+    "long":  ["string"]
   },
   "diagram": {
-    "type": "flowchart | table | diagram",
-    "data": ""
+    "type": "flowchart | sequence | graph",
+    "data": "string"
   },
-  "chart": []
+  "chart": ["string"]
 }
+
+IMPORTANT KEY NAMES — copy exactly:
+- "subTopics"    (camelCase, capital T)
+- "revisonPoint" (intentional typo — no 'i' before 'on', match this exactly)
+- "question"     (singular)
+- "note"         (singular string, not array)
 
 ========================
 EXAMPLE (follow this structure exactly)
 ========================
 {
   "subTopics": {
-    "low": [
-      {
-        "title": "History of the topic",
-        "bullets": ["Originated in the 19th century", "Developed by multiple scientists"],
-        "example": ""
-      }
+    "⭐⭐⭐": [
+      "**Newton's Second Law**: $F = ma$ — Force equals mass multiplied by acceleration. Increasing force increases acceleration proportionally.",
+      "**Conservation of Energy**: Total energy in a closed system remains constant. $E_k + E_p = \\\\text{constant}$"
     ],
-    "medium": [
-      {
-        "title": "Applications",
-        "bullets": ["Used in industry for X", "Applied in medicine for Y"],
-        "example": "Example: using X in solar panels"
-      }
+    "⭐⭐": [
+      "**Applications of Newton's Laws**: Used in engineering to design bridges, vehicles, and aerospace systems.",
+      "**Free Body Diagrams**: Visual tool to resolve all forces acting on an object before applying $F = ma$"
     ],
-    "high": [
-      {
-        "title": "Core Definition",
-        "bullets": ["**Definition**: The process of...", "**Formula**: E = mc^2"],
-        "example": "Example: when a ball falls..."
-      }
+    "⭐": [
+      "**History**: Isaac Newton published the three laws of motion in *Principia Mathematica* (1687)."
     ]
   },
-  "importance": "high",
-  "note": "Focus on definitions and formulas for the exam.",
-  "revisionPoints": ["Key point 1", "Key point 2"],
-  "questions": {
-    "short": ["What is X?", "Define Y."],
-    "long": ["Explain the process of X with examples."],
-    "diagram": ""
+  "importance": "⭐⭐⭐",
+  "note": "Focus on **Newton's Second Law** and **energy conservation** — these appear in almost every exam. Memorise the formulas and practice applying them in multi-step problems.",
+  "revisonPoint": [
+    "**F = ma**: Force (N) = mass (kg) × acceleration (m/s²)",
+    "**Conservation of Energy**: $E_k = \\\\frac{1}{2}mv^2$ and $E_p = mgh$",
+    "Newton's Third Law: every action has an equal and opposite reaction",
+    "A free body diagram resolves all forces before solving"
+  ],
+  "question": {
+    "short": [
+      "State Newton's Second Law and write its formula.",
+      "What is the SI unit of force and how is it derived?",
+      "Distinguish between mass and weight."
+    ],
+    "long": [
+      "A 5 kg block is pushed along a frictionless surface with 20 N. Calculate acceleration and velocity after 4 s. Show all steps.",
+      "Explain the principle of conservation of energy with a worked example involving a falling object."
+    ]
   },
   "diagram": {
     "type": "flowchart",
-    "data": ""
+    "data": "flowchart TD\\n    A[Apply Force F] --> B{Is surface frictionless?}\\n    B -- Yes --> C[a = F divided by m]\\n    B -- No --> D[a = F minus friction divided by m]\\n    C --> E[Calculate velocity: v = u + at]\\n    D --> E"
   },
-  "chart": []
+  "chart": [
+    "| Law | Formula | Key Variable |\\n|-----|---------|-------------|\\n| Newton 1st | No net force | Inertia |\\n| Newton 2nd | $F = ma$ | Acceleration |\\n| Newton 3rd | $F_{AB} = -F_{BA}$ | Reaction |"
+  ]
 }
 
 Now generate notes for the topic above. Output ONLY valid JSON.`;
