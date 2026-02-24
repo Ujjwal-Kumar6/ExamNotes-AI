@@ -16,7 +16,7 @@ export const rtopUP = async (req, res) => {
     const { amount } = req.body;
     const parsedAmount = Number(amount);
 
-    console.log("amount received:", parsedAmount, typeof parsedAmount);
+    console.log("💰 amount received:", parsedAmount);
 
     if (!craditMap[parsedAmount]) {
       return res.status(400).json({ message: "Invalid amount" });
@@ -25,10 +25,11 @@ export const rtopUP = async (req, res) => {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
+
       success_url: "https://examnotes-ai-ujjwal.onrender.com/success",
       cancel_url: "https://examnotes-ai-ujjwal.onrender.com/cancel",
 
-      // ✅ IMPORTANT: metadata must be strings
+      // ✅ MUST be strings
       metadata: {
         userId: String(userId),
         dimond: String(craditMap[parsedAmount]),
@@ -50,16 +51,17 @@ export const rtopUP = async (req, res) => {
 
     return res.status(200).json({ url: session.url });
   } catch (error) {
-    console.error("Stripe session error:", error);
+    console.error("❌ Stripe session error:", error);
     return res.status(500).json({ message: "Stripe session error" });
   }
 };
 
-// 🔥 Stripe webhook
+// 🔥 Stripe webhook (PRODUCTION SAFE)
 export const stripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   let event;
 
+  // ✅ Verify Stripe signature
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -72,25 +74,33 @@ export const stripeWebhook = async (req, res) => {
   }
 
   try {
+    // ✅ Only handle completed payments
     if (event.type === "checkout.session.completed") {
       console.log("🔥 Payment webhook received");
 
       const session = event.data.object;
       const { userId, dimond } = session.metadata;
 
-      console.log("Metadata:", session.metadata);
+      console.log("📦 Metadata:", session.metadata);
+
+      // 🔒 EXTRA SAFETY — avoid double credit
+      if (session.payment_status !== "paid") {
+        console.log("⚠️ Payment not marked paid");
+        return res.status(200).json({ received: true });
+      }
 
       const user = await userModle.findById(userId);
 
       if (!user) {
-        console.log("❌ User not found");
+        console.log("❌ User not found:", userId);
         return res.status(200).json({ received: true });
       }
 
-      user.credits += Number(dimond);
+      // ✅ Safe credit update
+      user.credits = (user.credits || 0) + Number(dimond);
       await user.save();
 
-      console.log("✅ Credits updated:", user.credits);
+      console.log("✅ Credits updated →", user.credits);
     }
 
     return res.status(200).json({ received: true });
