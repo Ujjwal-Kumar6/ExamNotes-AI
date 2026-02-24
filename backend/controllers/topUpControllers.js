@@ -9,11 +9,12 @@ const craditMap = {
   249: 1000,
 };
 
+// 🔥 Create checkout session
 export const rtopUP = async (req, res) => {
   try {
     const userId = req.userId;
     const { amount } = req.body;
-    const parsedAmount = Number(amount); // ✅ convert to number
+    const parsedAmount = Number(amount);
 
     console.log("amount received:", parsedAmount, typeof parsedAmount);
 
@@ -26,10 +27,13 @@ export const rtopUP = async (req, res) => {
       mode: "payment",
       success_url: "https://examnotes-ai-ujjwal.onrender.com/success",
       cancel_url: "https://examnotes-ai-ujjwal.onrender.com/cancel",
+
+      // ✅ IMPORTANT: metadata must be strings
       metadata: {
-        userId,
-        dimond: craditMap[parsedAmount],
+        userId: String(userId),
+        dimond: String(craditMap[parsedAmount]),
       },
+
       line_items: [
         {
           price_data: {
@@ -46,15 +50,16 @@ export const rtopUP = async (req, res) => {
 
     return res.status(200).json({ url: session.url });
   } catch (error) {
-    console.error(error);
+    console.error("Stripe session error:", error);
     return res.status(500).json({ message: "Stripe session error" });
   }
 };
 
+// 🔥 Stripe webhook
 export const stripeWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
-
   let event;
+
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -62,25 +67,35 @@ export const stripeWebhook = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error("Webhook signature error:", err.message);
-    return res.status(400).json({ message: `Webhook error: ${err.message}` });
+    console.error("❌ Webhook signature error:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
-    const { userId, dimond } = session.metadata;
+  try {
+    if (event.type === "checkout.session.completed") {
+      console.log("🔥 Payment webhook received");
 
-    try {
+      const session = event.data.object;
+      const { userId, dimond } = session.metadata;
+
+      console.log("Metadata:", session.metadata);
+
       const user = await userModle.findById(userId);
-      if (!user) return res.status(404).json({ message: "User not found" });
 
-      user.credits = user.credits + Number(dimond);
+      if (!user) {
+        console.log("❌ User not found");
+        return res.status(200).json({ received: true });
+      }
+
+      user.credits += Number(dimond);
       await user.save();
-    } catch (err) {
-      console.error("Credit update error:", err);
-      return res.status(500).json({ message: `topUP error: - ${err}` });
-    }
-  }
 
-  res.status(200).json({ received: true });
+      console.log("✅ Credits updated:", user.credits);
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (err) {
+    console.error("❌ Credit update error:", err);
+    return res.status(200).json({ received: true });
+  }
 };
