@@ -1,36 +1,17 @@
-export const buildPrompt = ({
-  topic,
-  level,
-  examType,
-  revision,
-  diagram,
-  charts
-}) => {
-  return `You are an ADVANCED EXAM NOTES STRICT JSON GENERATOR.
+export const buildPrompt = ({ topic, level, examType, revision, diagram, charts }) => {
+  return `You are a strict JSON exam notes generator.
 
-========================
-ABSOLUTE OUTPUT RULES
-========================
-- Output MUST be ONLY valid JSON
-- Do NOT write any text before or after JSON
-- JSON will be parsed using JSON.parse()
-- INVALID JSON = SYSTEM FAILURE
-- Use ONLY double quotes "
-- NO comments
-- NO trailing commas
-- Escape line breaks using \\n
-- Do NOT use emojis inside text values
-- Markdown allowed ONLY inside string values
-- Diagrams and charts must be inside strings
-- Never explain outside JSON
+OUTPUT RULES:
+- Output ONLY valid JSON. Nothing before or after.
+- Double quotes only. No trailing commas. No comments.
+- Escape newlines as \\n inside strings.
+- No emojis inside text values. Markdown allowed inside strings.
 
 ========================
 TASK
 ========================
-Convert the topic into exam-focused structured notes.
-
 Topic: ${topic}
-Class Level: ${level || "Not specified"}
+Level: ${level || "Not specified"}
 Exam Type: ${examType || "General"}
 Revision Mode: ${revision ? "ON" : "OFF"}
 Include Diagram: ${diagram ? "YES" : "NO"}
@@ -39,111 +20,112 @@ Include Charts: ${charts ? "YES" : "NO"}
 ========================
 PRIORITY SYSTEM
 ========================
-⭐⭐⭐ = MOST IMPORTANT  
-- Core concepts
-- Definitions & formulas
-- Appears in most exams
-- Highest marks
-- Maximum detail
+Classify every subtopic into exactly one of these three priority levels:
 
-⭐⭐ = IMPORTANT  
-- Supporting concepts
-- Applications
-- Frequently asked
-- Moderate detail
+"low"    = Background knowledge, rare topics, brief explanation (1 star)
+"medium" = Supporting concepts, applications, frequently asked (2 stars)
+"high"   = Core definitions, formulas, highest marks, maximum detail (3 stars)
 
-⭐ = SUPPLEMENTARY  
-- Background knowledge
-- Rare topics
-- Brief explanation
-
-Every subtopic MUST be placed into ⭐ / ⭐⭐ / ⭐⭐⭐ arrays ONLY.
+Every subtopic MUST appear in one of the three arrays: low, medium, or high.
+Do NOT leave all three arrays empty.
+Do NOT rename these keys.
 
 ========================
-CONTENT RULES
+SUBTOPIC FORMAT
 ========================
-- Clear exam-oriented language
-- Short bullet style sentences
-- Highlight key terms using **bold**
-- No long paragraphs
-- High-yield information only
-- Suitable for ${level}
-- Match ${examType} pattern
+Each item in low/medium/high must follow this exact shape:
+{
+  "title": "string",
+  "bullets": ["string", "string"],
+  "example": "string or empty string"
+}
 
 ========================
-REVISION MODE LOGIC
+REVISION MODE
 ========================
-${revision ? `
-- Focus heavily on ⭐⭐⭐
-- Minimize ⭐
-- Very concise notes
-- Quick recall style
-- 2-3 bullets per point
-` : `
-- Balanced coverage
-- Detailed explanations
-- Include examples
-`}
+${revision
+  ? "Focus on high priority only. Keep bullets concise (2-3 per item). Quick recall style."
+  : "Balanced coverage across all priorities. Include examples and detailed explanations."}
 
 ========================
 DIAGRAM RULES
 ========================
-${diagram ? `
-- ASCII or Mermaid allowed
-- Only for ⭐⭐⭐ or ⭐⭐
-- Keep simple and exam relevant
-- Must be placed ONLY inside "diagram.data"
-` : `
-- "diagram.data" must be empty string
-`}
+${diagram
+  ? 'Include an ASCII or Mermaid diagram inside diagram.data for the most important concept. Keep it simple.'
+  : 'Set diagram.data to empty string "".'}
 
 ========================
 CHART RULES
 ========================
-${charts ? `
-- Markdown tables / bar / pie allowed
-- Max 10 rows
-- Only ⭐⭐⭐ or ⭐⭐ topics
-- Must be inside "chart" array as strings
-` : `
-- "chart" must be empty array
-`}
+${charts
+  ? 'Include 1-2 markdown tables inside the chart array as strings. Max 10 rows. Only for high/medium topics.'
+  : 'Set chart to empty array [].'}
 
-=====================================
-REQUIRED JSON STRUCTURE (DO NOT CHANGE)
-=====================================
+========================
+EXACT OUTPUT STRUCTURE
+========================
 {
-   "subTopics"{
-       "⭐" : [],
-       "⭐⭐" : [],
-       "⭐⭐⭐" : [],
-   },
-   "importance" : "⭐ | ⭐⭐ | ⭐⭐⭐"
-   "note" : "string"
-   "revisonPoint": [],
-   "question" : {
-        "short" : [],
-        "long" : [],
-        "diagram" : ""
-   }
-    "diagram" : {
-        type : "flowchart | table | diagram",
-        data : ""
-    }
-    "chart":[]
+  "subTopics": {
+    "low": [],
+    "medium": [],
+    "high": []
+  },
+  "importance": "low | medium | high",
+  "note": "string",
+  "revisionPoints": [],
+  "questions": {
+    "short": [],
+    "long": [],
+    "diagram": ""
+  },
+  "diagram": {
+    "type": "flowchart | table | diagram",
+    "data": ""
+  },
+  "chart": []
 }
 
 ========================
-QUALITY CHECK BEFORE OUTPUT
+EXAMPLE (follow this structure exactly)
 ========================
-✓ JSON valid
-✓ No trailing commas
-✓ No text outside JSON
-✓ All subtopics categorized
-✓ ⭐⭐⭐ most detailed
-✓ Diagram/chart rules followed
-✓ Suitable for ${level}
-✓ Exam focused for ${examType}
+{
+  "subTopics": {
+    "low": [
+      {
+        "title": "History of the topic",
+        "bullets": ["Originated in the 19th century", "Developed by multiple scientists"],
+        "example": ""
+      }
+    ],
+    "medium": [
+      {
+        "title": "Applications",
+        "bullets": ["Used in industry for X", "Applied in medicine for Y"],
+        "example": "Example: using X in solar panels"
+      }
+    ],
+    "high": [
+      {
+        "title": "Core Definition",
+        "bullets": ["**Definition**: The process of...", "**Formula**: E = mc^2"],
+        "example": "Example: when a ball falls..."
+      }
+    ]
+  },
+  "importance": "high",
+  "note": "Focus on definitions and formulas for the exam.",
+  "revisionPoints": ["Key point 1", "Key point 2"],
+  "questions": {
+    "short": ["What is X?", "Define Y."],
+    "long": ["Explain the process of X with examples."],
+    "diagram": ""
+  },
+  "diagram": {
+    "type": "flowchart",
+    "data": ""
+  },
+  "chart": []
+}
 
-Generate NOW in STRICT JSON ONLY.`;
+Now generate notes for the topic above. Output ONLY valid JSON.`;
 };
